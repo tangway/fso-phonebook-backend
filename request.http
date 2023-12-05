@@ -37,3 +37,6 @@ content-type: application/json
     "name": "",
     "number": "ss"
 }
+
+###
+GET https://phonebook-deployment-etdq.onrender.com/api/persons
