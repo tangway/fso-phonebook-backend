@@ -102,8 +102,8 @@ app.get("/api/persons", (req, res, next) => {
 // mongoose version of get route
 app.get("/api/persons/:id", (req, res, next) => {
   Person.findById(req.params.id)
-    .then(p => res.json(p))
-    .catch(err => next(err));
+    .then((p) => res.json(p))
+    .catch((err) => next(err));
 });
 
 // There can only be one response.send() statement in an Express app route.
@@ -118,11 +118,11 @@ app.get("/api/persons/:id", (req, res, next) => {
 
 app.get("/info", (req, res, next) => {
   Person.countDocuments()
-    .then(count => {
+    .then((count) => {
       res.send(`<p>Phonebook currently has info for ${count} ppl.</p> 
     <p>Requested at: ${new Date()}</p>`);
     })
-    .catch(err => next(err))
+    .catch((err) => next(err));
 });
 
 // // first version of delete route
@@ -221,21 +221,25 @@ app.post("/api/persons", (req, res, next) => {
     .then((savedPerson) => {
       res.json(savedPerson);
     })
-    .catch((error) => next(error));
+    .catch(err => next(err));
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
   const body = req.body;
-  
+
   // note that put update doesnt need a new Person constructor
   const person = {
     name: body.name,
     number: body.number,
   };
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true, context: 'query' })
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((updatedNote) => res.json(updatedNote))
-    .catch((err) => next(err));
+    .catch(err => next(err));
 });
 
 // // the exploration into where request body data is at
@@ -268,6 +272,7 @@ app.put("/api/persons/:id", (req, res, next) => {
 //   });
 // });
 
+
 // handler for unknown endpoints
 app.use((req, res, next) => {
   res.status(404).send({
@@ -283,7 +288,7 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
   } else if (error.name === "ValidationError") {
-    return response.status(500).send({ error: error.message})
+    return response.status(500).send({ error: error.message });
   }
 
   next(error);

@@ -18,7 +18,19 @@ const personSchema = new mongoose.Schema({
     minLength: 3,
     required: true
   },
-  number: String,
+  number: {
+    type: String,
+    minLength: 9,
+    required: true,
+    validate: {
+      validator: function(v) {
+        const regex1 = /^\d{2}-\d{6,}$/; // 2 digits before the hyphen, 6 or more after the hyphen
+        const regex2 = /^\d{3}-\d{5,}$/; // 3 digits before the hyphen, 5 or more after the hyphen
+        return regex1.test(v) || regex2.test(v); // returns true if any 1 is true
+      },
+      message: props => `${props.value} has to be in format nn-nnnnnn or nnn-nnnnn and has to be at least 8 digits`
+    }
+  }
 });
 
 personSchema.set("toJSON", {
