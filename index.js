@@ -205,15 +205,15 @@ app.delete('/api/persons/:id', async (req, res, next) => {
 
 // post route with mongoose
 app.post('/api/persons', (req, res, next) => {
-  const { body } = req.body;
+  const { name, number } = req.body;
 
-  if (body.name === undefined) {
+  if (name === undefined) {
     return res.status(400).json({ error: 'content missing' });
   }
 
   const person = new Person({
-    name: body.name,
-    number: body.number,
+    name,
+    number,
   });
 
   // posting a new item into db uses the .save method on the mongoose object itself
@@ -226,12 +226,12 @@ app.post('/api/persons', (req, res, next) => {
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
-  const { body } = req.body;
+  const { name, number } = req.body;
 
   // note that put update doesnt need a new Person constructor
   const person = {
-    name: body.name,
-    number: body.number,
+    name,
+    number,
   };
 
   Person.findByIdAndUpdate(req.params.id, person, {
