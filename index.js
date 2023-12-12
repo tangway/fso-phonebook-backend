@@ -1,11 +1,12 @@
-const express = require("express");
+const express = require('express');
 // morgan is middleware for logging http requests
-const morgan = require("morgan");
+const morgan = require('morgan');
+
 const app = express();
 // to use .env files
-require("dotenv").config();
+require('dotenv').config();
 // to load static site in dist folder
-app.use(express.static("dist"));
+app.use(express.static('dist'));
 
 // this helps to attach the req data to body, check the difference in console output
 // between having this line and not
@@ -44,16 +45,16 @@ app.use(express.json());
 
 // stringify is needed cos req.body is an object and we need to output string
 // onto the console
-morgan.token("body", (req, res) => JSON.stringify(req.body));
+morgan.token('body', (req) => JSON.stringify(req.body));
 // this line is customized to show the request body
 app.use(
   morgan(
-    ":method :url :status :response-time ms - :res[content-length] :body - :req[content-length]"
-  )
+    ':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]',
+  ),
 );
 
 // load module for person model that uses mongoose
-const Person = require("./models/person");
+const Person = require('./models/person');
 
 // // for logging received request and sent response without the use of morgan
 // // `app.use() have to be placed before the routes which need them
@@ -69,7 +70,7 @@ const Person = require("./models/person");
 //   next();
 // });
 
-app.get("/api/persons", (req, res, next) => {
+app.get('/api/persons', (req, res, next) => {
   // resp.json(persons);
   Person.find({})
     .then((persons) => {
@@ -100,7 +101,7 @@ app.get("/api/persons", (req, res, next) => {
 // });
 
 // mongoose version of get route
-app.get("/api/persons/:id", (req, res, next) => {
+app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
     .then((p) => res.json(p))
     .catch((err) => next(err));
@@ -116,7 +117,7 @@ app.get("/api/persons/:id", (req, res, next) => {
 //   <p>Requested at: ${new Date()}</p>`);
 // });
 
-app.get("/info", (req, res, next) => {
+app.get('/info', (req, res, next) => {
   Person.countDocuments()
     .then((count) => {
       res.send(`<p>Phonebook currently has info for ${count} ppl.</p> 
@@ -148,12 +149,12 @@ app.get("/info", (req, res, next) => {
 // });
 
 // delete route using async await instead of promises
-app.delete("/api/persons/:id", async (req, res, next) => {
+app.delete('/api/persons/:id', async (req, res, next) => {
   try {
     const deletedPerson = await Person.findByIdAndDelete(req.params.id);
     if (!deletedPerson) {
       // Document not found
-      res.status(404).send("Note not found");
+      res.status(404).send('Note not found');
     } else {
       // Deletion successful
       res.json(deletedPerson);
@@ -203,11 +204,11 @@ app.delete("/api/persons/:id", async (req, res, next) => {
 // });
 
 // post route with mongoose
-app.post("/api/persons", (req, res, next) => {
-  const body = req.body;
+app.post('/api/persons', (req, res, next) => {
+  const { body } = req.body;
 
   if (body.name === undefined) {
-    return res.status(400).json({ error: "content missing" });
+    return res.status(400).json({ error: 'content missing' });
   }
 
   const person = new Person({
@@ -216,16 +217,16 @@ app.post("/api/persons", (req, res, next) => {
   });
 
   // posting a new item into db uses the .save method on the mongoose object itself
-  person
+  return person
     .save()
     .then((savedPerson) => {
       res.json(savedPerson);
     })
-    .catch(err => next(err));
+    .catch((err) => next(err));
 });
 
-app.put("/api/persons/:id", (req, res, next) => {
-  const body = req.body;
+app.put('/api/persons/:id', (req, res, next) => {
+  const { body } = req.body;
 
   // note that put update doesnt need a new Person constructor
   const person = {
@@ -236,10 +237,10 @@ app.put("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndUpdate(req.params.id, person, {
     new: true,
     runValidators: true,
-    context: "query",
+    context: 'query',
   })
     .then((updatedNote) => res.json(updatedNote))
-    .catch(err => next(err));
+    .catch((err) => next(err));
 });
 
 // // the exploration into where request body data is at
@@ -272,11 +273,10 @@ app.put("/api/persons/:id", (req, res, next) => {
 //   });
 // });
 
-
 // handler for unknown endpoints
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).send({
-    error: "Not Found",
+    error: 'Not Found',
     message: `No route matches ${req.method} ${req.originalUrl}`,
   });
 });
@@ -285,19 +285,20 @@ app.use((req, res, next) => {
 const errorHandler = (error, request, response, next) => {
   console.error(error.message);
 
-  if (error.name === "CastError") {
-    return response.status(400).send({ error: "malformatted id" });
-  } else if (error.name === "ValidationError") {
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+  if (error.name === 'ValidationError') {
     return response.status(500).send({ error: error.message });
   }
 
-  next(error);
+  return next(error);
 };
 
 // this has to be the last loaded middleware.
 app.use(errorHandler);
 
-const PORT = process.env.PORT;
+const { PORT } = process.env;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} at ${new Date()}`);
 });
